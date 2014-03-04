@@ -1,0 +1,100 @@
+<head>
+
+</head>
+<body>
+
+	<div>
+		The world is made up of 96 images, we need to load them all first before we can begin. Loading <span id='loading'></span>/96.
+	</div>
+
+	<img src='http://imgs.xkcd.com/comics/now/11h45m.png' width='706', height='706' id='map'/>
+
+
+	<script src="http://code.jquery.com/jquery-1.10.2.js"></script>
+	<script src="http://underscorejs.org/underscore-min.js"></script>
+
+	<script>
+
+		function toDegrees(angle) {
+			return angle * (180 / Math.PI);
+		}
+
+		function makePositive(n) {
+			if(n >= 0) {
+				return n 
+			} else {
+				return n + 360
+			}
+		}
+
+		var BASE = 'http://imgs.xkcd.com/comics/now/'
+		var EXTENSION = '.png'
+
+		var minutes = [0, 15, 30, 45];
+		var hours = _.range(24);
+
+		var times = _.flatten(
+			_.map(hours, function(hour){ 
+				return _.map(minutes, function(minute){
+					return _.zip([hour, minute])
+				}); 
+			}),
+			true
+		);
+
+		var pictureList = _.map(times, function(time){
+			if (time[0] > 9) {
+				h = time[0]  
+			} else {
+				h = '0' + time[0]
+			} 
+
+			if (time[1] > 9) {
+				m = time[1]  
+			} else {
+				m = '0' + time[1]
+			} 
+
+			return BASE + h + 'h' + m + 'm' + EXTENSION
+		});
+
+		var picturesToLoad = pictureList.length
+
+		$('#loading').text(picturesToLoad);
+
+		_.map(pictureList, function(pictureUrl) {
+		    var img=new Image();
+		    img.onload = function() {
+			    picturesToLoad -= 1;
+				$('#loading').text(picturesToLoad);
+	        };
+		    img.src=pictureUrl;
+		});
+
+		var degreePerPicture = [360.0 / pictureList.length];
+
+		var picture = [706, 706];
+		var centre = [353, 353];
+		var startingPoint = [353, 453];
+
+
+		$( "#map" ).mousemove(function( event ) {
+			var pointer = [event.pageX, event.pageY];
+
+			console.log(pointer);
+
+			var a1 = Math.atan2(startingPoint[0] - centre[0], startingPoint[1] - centre[1])
+			var a2 = Math.atan2(pointer[0] - centre[0], pointer[1] - centre[1])
+
+			var angle = makePositive(toDegrees(a2 - a1))
+
+			console.log(-Math.round(angle / degreePerPicture));
+			var index = pictureList.length - 1 - Math.round(angle / degreePerPicture);
+			var newPicture = pictureList[index];
+
+			$('#map').attr('src', newPicture);
+		});
+
+	</script>
+
+</body>
